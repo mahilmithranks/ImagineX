@@ -1,5 +1,7 @@
 # ImagineX — Premium Generative Media Workspace
 
+**🚀 Live Demo:** [https://imaginex-1qzc.onrender.com/](https://imaginex-1qzc.onrender.com/)
+
 ImagineX is a state-of-the-art, production-grade creative tool designed to seamlessly transform natural language into stunning visual media. By prioritizing user experience, modern design aesthetics, and a robust underlying architecture, ImagineX transcends the typical AI wrapper to deliver a premium, end-to-end generative workflow.
 
 ## 🌟 Core Features
