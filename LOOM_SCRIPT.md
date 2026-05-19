@@ -38,7 +38,7 @@
 
 **What to say:**
 > "While that generates, I want to highlight async handling. Calling external models can be slow or fail. In my API route, I explicitly catch `QuotaErrors` (HTTP 429) and `TimeoutErrors` (HTTP 504). 
-> If the model is cold and times out, the app doesn't crash—it gives the user a friendly error and a retry button. I even built a fallback SVG mock generator so the UI never fully breaks if the API goes down."
+> If the model is cold and times out, the app doesn't crash—it gives the user a friendly error and a retry button. I even built a fallback mechanism using an open API (Pollinations.ai) so the UI never breaks and users still get an image if the primary API goes down."
 
 ---
 

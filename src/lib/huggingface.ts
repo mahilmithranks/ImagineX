@@ -34,7 +34,7 @@ export async function generateImage(
   const apiKey = process.env.HUGGINGFACE_API_KEY;
 
   if (!apiKey || apiKey === "hf_your_token_here") {
-    return { imageUrl: buildMockDataUri(prompt, "Add HUGGINGFACE_API_KEY to .env.local"), isMocked: true };
+    return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
   }
 
   const model = process.env.HF_MODEL ?? settings.model ?? DEFAULT_MODEL;
@@ -72,12 +72,12 @@ export async function generateImage(
     // HF returns 503 when the model is loading (usually transient)
     if (response.status === 503) {
       console.warn("[HF] Model loading (503) — returning mock");
-      return { imageUrl: buildMockDataUri(prompt, "Model is loading (503), please try again"), isMocked: true };
+      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
     }
 
     if (response.status === 429 || response.status === 402) {
       console.warn("[HF] Quota or credits exceeded — returning mock");
-      return { imageUrl: buildMockDataUri(prompt, "Hugging Face API quota exceeded"), isMocked: true };
+      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
     }
 
     if (!response.ok) {
@@ -122,46 +122,12 @@ export class TimeoutError extends Error {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Mock generator — returns a deterministic gradient SVG as a data URI
+// Fallback generator — returns a real AI image from Pollinations.ai (Free/No-Auth)
 // ────────────────────────────────────────────────────────────────────────────
 
-function buildMockDataUri(prompt: string, reasonMessage: string = "Add HUGGINGFACE_API_KEY to .env.local"): string {
-  // Derive a stable hue from the prompt so each mock looks distinct
-  let hash = 0;
-  for (let i = 0; i < prompt.length; i++) {
-    hash = (hash * 31 + prompt.charCodeAt(i)) >>> 0;
-  }
-  const hue1 = hash % 360;
-  const hue2 = (hue1 + 120) % 360;
-
-  const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%"   stop-color="hsl(${hue1},70%,30%)"/>
-      <stop offset="100%" stop-color="hsl(${hue2},70%,20%)"/>
-    </linearGradient>
-  </defs>
-  <rect width="1024" height="1024" fill="url(#g)"/>
-  <text
-    x="512" y="480"
-    font-family="sans-serif" font-size="22" fill="rgba(255,255,255,0.85)"
-    text-anchor="middle" dominant-baseline="middle"
-  >[Mock] ${escapeXml(prompt.slice(0, 80))}</text>
-  <text
-    x="512" y="530"
-    font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.5)"
-    text-anchor="middle"
-  >${escapeXml(reasonMessage)}</text>
-</svg>`.trim();
-
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
-}
-
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+function buildMockDataUri(prompt: string, width: number = 1024, height: number = 1024): string {
+  // Add a random seed so identical prompts give different results
+  const seed = Math.floor(Math.random() * 1000000);
+  const safePrompt = encodeURIComponent(prompt);
+  return `https://image.pollinations.ai/prompt/${safePrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
 }
