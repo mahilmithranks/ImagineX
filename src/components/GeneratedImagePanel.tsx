@@ -166,7 +166,7 @@ function SuccessState({ generation, isMocked }: SuccessProps) {
               backdropFilter: "blur(8px)",
             }}
           >
-            Preview — add API key for real image
+            Mock Preview Mode
           </span>
         </div>
       )}
