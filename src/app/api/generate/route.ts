@@ -57,8 +57,8 @@ export async function POST(req: NextRequest) {
   // ── Merge settings ────────────────────────────────────────────────────────
   const settings = { ...DEFAULT_SETTINGS, ...partialSettings };
 
-  // ── Enhance prompt with style preset ────────────────────────────────────
-  const finalPrompt = enhancePrompt(prompt.trim(), settings.stylePreset);
+  // ── Enhance prompt with style preset and text overlay ───────────────────
+  const finalPrompt = enhancePrompt(prompt.trim(), settings.stylePreset, overlayText?.trim());
 
   // ── Call AI service ───────────────────────────────────────────────────────
   try {

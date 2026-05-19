@@ -26,16 +26,20 @@ import type { StylePresetId } from "@/types/generation";
  */
 export function enhancePrompt(
   userPrompt: string,
-  stylePresetId?: StylePresetId
+  stylePresetId?: StylePresetId,
+  overlayText?: string
 ): string {
-  if (!stylePresetId || stylePresetId === "none") {
-    return userPrompt;
-  }
+  let finalPrompt = userPrompt;
 
   const preset = STYLE_PRESETS.find((p) => p.id === stylePresetId);
-  if (!preset?.instructions) {
-    return userPrompt;
+  if (preset?.instructions) {
+    finalPrompt = `${finalPrompt}, ${preset.instructions}`;
   }
 
-  return `${userPrompt}, ${preset.instructions}`;
+  if (overlayText) {
+    // Instruct the FLUX model to render the text natively
+    finalPrompt = `${finalPrompt}. The word "${overlayText}" is written boldly and realistically integrated into the scene.`;
+  }
+
+  return finalPrompt;
 }

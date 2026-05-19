@@ -61,22 +61,7 @@ export function GalleryCard({ generation, onDelete }: Props) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
-        {/* Cinematic subtitle overlay */}
-        {generation.overlayText && (
-          <div className="absolute bottom-0 inset-x-0 p-2 pb-[5%] flex justify-center pointer-events-none">
-            <span
-              className="text-white text-center font-bold uppercase truncate w-full px-2"
-              style={{
-                fontFamily: "Impact, sans-serif",
-                fontSize: "18px",
-                textShadow: "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 4px 8px rgba(0,0,0,0.8)",
-                WebkitTextStroke: "0.5px black",
-              }}
-            >
-              {generation.overlayText}
-            </span>
-          </div>
-        )}
+
 
         {/* Model badge — glass pill, top left */}
         <div className="absolute top-2.5 left-2.5">
@@ -124,7 +109,7 @@ export function GalleryCard({ generation, onDelete }: Props) {
           {/* Download */}
           <button
             id={`download-${generation.id}`}
-            onClick={() => downloadImage(generation.imageUrl, `imaginex-${generation.id}`, generation.overlayText)}
+            onClick={() => downloadImage(generation.imageUrl, `imaginex-${generation.id}`)}
             title="Download as PNG"
             className="flex items-center gap-1.5 rounded-xl text-[12px] font-semibold
                        px-3 py-2 text-white transition-all duration-150
