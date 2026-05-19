@@ -75,8 +75,8 @@ export async function generateImage(
       return { imageUrl: buildMockDataUri(prompt), isMocked: true };
     }
 
-    if (response.status === 429) {
-      throw new QuotaError("HuggingFace API quota exceeded");
+    if (response.status === 429 || response.status === 402) {
+      throw new QuotaError("HuggingFace API quota or credits exceeded");
     }
 
     if (!response.ok) {

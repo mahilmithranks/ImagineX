@@ -1,50 +1,67 @@
 # ImagineX - Loom Walkthrough Script
 
-**Target Length:** 3-4 Minutes
-**Goal:** Show that you can build a slick UI, handle edge cases (like network errors), and structure code cleanly.
+**Target Length:** ~3 Minutes
+**Goal:** Show that you can build a slick UI, handle edge cases (like network errors), and structure code cleanly. 
 
 ---
 
-## 1. Introduction (0:00 - 0:30)
-**Action:** Start with your screen sharing the ImagineX home page.
-**Script Idea:**
-> "Hi team, I'm [Your Name], and this is my submission for the Forward Deployed Engineer role. I built **ImagineX**, a minimal web app for generative media. 
-> I focused heavily on building a solid foundation with a premium feel, making sure the user experience is smooth even when the AI models take a bit of time to respond."
+## Scene 1: Introduction (0:00 - 0:25)
+**Screen:** Show the ImagineX home page (Generation screen) with a clean, empty state.
+**Action:** Move your mouse smoothly around the UI to show the glass-morphic design.
 
-## 2. Feature Demo: Generation & Bonus (0:30 - 1:15)
-**Action:** Type a prompt into the input (e.g. *A cute fluffy monster wearing oversized headphones, sitting at a futuristic DJ booth*). Open "Advanced Settings", change the style to **3D Render**, and add a text overlay (e.g. *FEEL THE BEAT*). Hit Generate.
-**Script Idea:**
-> "Let me show you the core flow. You can type a prompt here. For the 'Bonus' requirement of a canvas edit, I didn't want to just stick an ugly HTML badge over the image. 
-> Instead, I configured the backend to dynamically inject instructions into the FLUX.1 model so that it natively renders your custom text *directly* into the pixels of the image, perfectly matched to the scene's lighting and style!
-> Notice the UI while it's generating—because image generation takes time, I wanted the loading state to feel deliberate and responsive rather than just a frozen screen."
-
-## 3. Handling Async & Errors (1:15 - 1:45)
-**Action:** While the image is generating (or just talking through it).
-**Script Idea:**
-> "A big focus for me was async handling. Under the hood, I'm calling the Hugging Face Serverless Inference API. I explicitly catch different types of errors—like `QuotaErrors` (HTTP 429) or `TimeoutErrors` (HTTP 504). 
-> If the model is cold and times out, the app doesn't just crash. It gives the user a friendly message and a retry button. If I hit a quota limit, it tells the user immediately. I also built a fallback SVG mock so the app never totally breaks if the API key is missing."
-
-## 4. Feature Demo: Gallery & Tweaking (1:45 - 2:30)
-**Action:** Once the image is generated, navigate to the Gallery page. Scroll through it, then hover over a card and click "Tweak".
-**Script Idea:**
-> "Every successful generation is asynchronously saved to a local SQLite database, so the user doesn't have to wait for the DB write to see their image. 
-> Here in the Gallery, you can see past generations along with the prompt, the model used, and the date. 
-> To hit the 'Tweak' requirement, I added this action. When I click 'Tweak', it saves the generation context to `sessionStorage` and drops the user right back into the editor with all their settings, style presets, and prompt pre-filled, ready to iterate."
-
-## 5. Code Architecture & Decisions (2:30 - 3:30)
-**Action:** Open your code editor (Cursor/VS Code) and quickly show `useGenerate.ts` and `route.ts`.
-**Script Idea:**
-> "Briefly touching on the code—I wanted to make sure this could easily scale. 
-> I separated the business logic from the UI. The presentation components like `PromptForm` are completely isolated. All the state machine logic for idle, loading, error, and success lives in a custom hook called `useGenerate`. 
-> In the backend, the `/api/generate` route cleanly handles validation, calls the prompt enhancer, interfaces with Hugging Face, and handles the database inserts independently. This means adding a new provider like Fal.ai later would be a breeze."
-
-## 6. Outro (3:30 - 3:45)
-**Action:** Switch back to the web app.
-**Script Idea:**
-> "That’s ImagineX. It’s a small slice, but built with a solid foundation, robust API error handling, and a clean architecture. Thanks for your time, and I look forward to chatting more about it!"
+**What to say:**
+> "Hi team! I'm [Your Name], and this is my submission for the Forward Deployed Engineer role. I built **ImagineX**, a minimal but premium web app for generative media. 
+> My main focus for this assignment was to build a solid foundation with a great user experience—making sure it looks beautiful, feels responsive, and handles API errors gracefully behind the scenes."
 
 ---
-### 💡 Tips for Recording
-- **Use the provided prompts:** Keep a notepad open with the prompts I generated for you so you can just copy/paste them during the video.
-- **Don't stress mistakes:** If something minor glitches or you hit an API timeout, just talk through it like you would to a coworker. "Ah, looks like the model was cold, but as you can see the error handling caught it."
-- **Keep it moving:** Don't linger too long on one line of code. They can read the repo. Just highlight *why* you made a decision.
+
+## Scene 2: Core Generation & Native Text (0:25 - 1:15)
+**Screen:** Still on the Home page.
+**Action:** 
+1. Type prompt: *"A neon-lit cyberpunk street market in Tokyo at midnight"*
+2. Open **Advanced Settings**.
+3. Set Style to **Cinematic**.
+4. Set Aspect Ratio to **Wide**.
+5. Set Text Overlay to *"NIGHT CITY"*.
+6. Click **Generate**.
+
+**What to say:**
+> "Let’s start with a core generation. I’ve hooked this up to the Hugging Face Serverless Inference API, specifically using the FLUX.1 model. 
+> For the 'canvas edit' bonus requirement, I didn't want to just stick an ugly HTML badge over the final image. Instead, I configured the backend to dynamically inject our 'Text Overlay' into the model's instructions.
+> Because FLUX has incredible text capabilities, it actually renders our custom text *natively* into the pixels of the image, matching the scene's lighting perfectly."
+
+---
+
+## Scene 3: Handling Async & Errors (1:15 - 1:45)
+**Screen:** Show the image loading state, and then the successful image appearing.
+**Action:** Point out the loaded image. Briefly open your code editor (Cursor/VS Code) to show `route.ts` (lines 90-102 showing error handling).
+
+**What to say:**
+> "While that generates, I want to highlight async handling. Calling external models can be slow or fail. In my API route, I explicitly catch `QuotaErrors` (HTTP 429) and `TimeoutErrors` (HTTP 504). 
+> If the model is cold and times out, the app doesn't crash—it gives the user a friendly error and a retry button. I even built a fallback SVG mock generator so the UI never fully breaks if the API goes down."
+
+---
+
+## Scene 4: The Gallery & Tweak Flow (1:45 - 2:30)
+**Screen:** Click over to the **Gallery** tab.
+**Action:** 
+1. Scroll through the gallery to show the locally saved images. 
+2. Hover over the cyberpunk image you just made.
+3. Click the **Tweak** button.
+4. Watch it snap back to the Home screen with everything pre-filled.
+
+**What to say:**
+> "Every successful generation is asynchronously saved to a local SQLite database, so the UI never blocks waiting for a DB write. 
+> Here in the Gallery, users can browse their history. To hit the 'Tweak' requirement, I added a quick action on hover. 
+> When you click 'Tweak', it grabs the generation context from local storage and drops you right back into the editor. It pre-fills your exact prompt, your advanced settings, and even your text overlay, making it super easy to iterate on a design."
+
+---
+
+## Scene 5: Code Architecture & Outro (2:30 - 3:00)
+**Screen:** Switch back to your Code Editor, show `useGenerate.ts` briefly.
+**Action:** Highlight the separation of concerns.
+
+**What to say:**
+> "Finally, a quick note on architecture: I strictly separated business logic from the UI. 
+> Presentation components are completely isolated. All state machine logic—idle, loading, error, success—lives in a custom hook called `useGenerate`. This makes the code highly scalable if we wanted to add a new provider like Fal.ai later.
+> That’s ImagineX! A small slice, but built with robust error handling and clean architecture. Thanks for watching."
