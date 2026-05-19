@@ -18,6 +18,7 @@ import clsx from "clsx";
 interface Props {
   isLoading: boolean;
   initialPrompt?: string;
+  initialSettings?: Partial<GenerationSettings>;
   initialOverlayText?: string;
   onSubmit: (
     prompt: string,
