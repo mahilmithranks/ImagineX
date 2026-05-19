@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "huggingface.co",
       },
+      {
+        // Pollinations.ai fallback for when HF quota is exceeded
+        protocol: "https",
+        hostname: "image.pollinations.ai",
+      },
     ],
     // Allow data URIs for mocked/base64 images
     dangerouslyAllowSVG: true,
