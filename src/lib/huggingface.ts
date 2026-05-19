@@ -34,7 +34,7 @@ export async function generateImage(
   const apiKey = process.env.HUGGINGFACE_API_KEY;
 
   if (!apiKey || apiKey === "hf_your_token_here") {
-    return { imageUrl: buildMockDataUri(prompt), isMocked: true };
+    return { imageUrl: buildMockDataUri(prompt, "Add HUGGINGFACE_API_KEY to .env.local"), isMocked: true };
   }
 
   const model = process.env.HF_MODEL ?? settings.model ?? DEFAULT_MODEL;
@@ -72,12 +72,12 @@ export async function generateImage(
     // HF returns 503 when the model is loading (usually transient)
     if (response.status === 503) {
       console.warn("[HF] Model loading (503) — returning mock");
-      return { imageUrl: buildMockDataUri(prompt), isMocked: true };
+      return { imageUrl: buildMockDataUri(prompt, "Model is loading (503), please try again"), isMocked: true };
     }
 
     if (response.status === 429 || response.status === 402) {
       console.warn("[HF] Quota or credits exceeded — returning mock");
-      return { imageUrl: buildMockDataUri(prompt), isMocked: true };
+      return { imageUrl: buildMockDataUri(prompt, "Hugging Face API quota exceeded"), isMocked: true };
     }
 
     if (!response.ok) {
@@ -125,7 +125,7 @@ export class TimeoutError extends Error {
 // Mock generator — returns a deterministic gradient SVG as a data URI
 // ────────────────────────────────────────────────────────────────────────────
 
-function buildMockDataUri(prompt: string): string {
+function buildMockDataUri(prompt: string, reasonMessage: string = "Add HUGGINGFACE_API_KEY to .env.local"): string {
   // Derive a stable hue from the prompt so each mock looks distinct
   let hash = 0;
   for (let i = 0; i < prompt.length; i++) {
@@ -152,7 +152,7 @@ function buildMockDataUri(prompt: string): string {
     x="512" y="530"
     font-family="sans-serif" font-size="14" fill="rgba(255,255,255,0.5)"
     text-anchor="middle"
-  >Add HUGGINGFACE_API_KEY to .env.local for real images</text>
+  >${escapeXml(reasonMessage)}</text>
 </svg>`.trim();
 
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
