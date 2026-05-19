@@ -61,16 +61,16 @@ export function GalleryCard({ generation, onDelete }: Props) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
-        {/* Overlay text badge */}
+        {/* Cinematic subtitle overlay */}
         {generation.overlayText && (
-          <div className="absolute bottom-0 inset-x-0 p-3">
+          <div className="absolute bottom-0 inset-x-0 p-2 pb-[5%] flex justify-center pointer-events-none">
             <span
-              className="inline-block rounded-xl text-white text-[11px] font-medium
-                         px-2.5 py-1 max-w-full truncate"
+              className="text-white text-center font-bold uppercase truncate w-full px-2"
               style={{
-                background: "rgba(0,0,0,0.6)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                fontFamily: "Impact, sans-serif",
+                fontSize: "18px",
+                textShadow: "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 4px 8px rgba(0,0,0,0.8)",
+                WebkitTextStroke: "0.5px black",
               }}
             >
               {generation.overlayText}
@@ -124,7 +124,7 @@ export function GalleryCard({ generation, onDelete }: Props) {
           {/* Download */}
           <button
             id={`download-${generation.id}`}
-            onClick={() => downloadImage(generation.imageUrl, `imaginex-${generation.id}`)}
+            onClick={() => downloadImage(generation.imageUrl, `imaginex-${generation.id}`, generation.overlayText)}
             title="Download as PNG"
             className="flex items-center gap-1.5 rounded-xl text-[12px] font-semibold
                        px-3 py-2 text-white transition-all duration-150

@@ -137,21 +137,20 @@ function SuccessState({ generation, isMocked }: SuccessProps) {
         priority
       />
 
-      {/* Frosted overlay text */}
+      {/* Cinematic subtitle overlay */}
       {generation.overlayText && (
-        <div className="absolute inset-0 flex items-end p-6 pointer-events-none">
-          <div
-            className="rounded-2xl px-5 py-3 max-w-full"
+        <div className="absolute bottom-0 inset-x-0 p-4 pb-[8%] flex justify-center pointer-events-none">
+          <span
+            className="text-white text-center font-bold uppercase w-full truncate px-4"
             style={{
-              background: "rgba(0,0,0,0.55)",
-              backdropFilter: "blur(16px) saturate(1.3)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              fontFamily: "Impact, sans-serif",
+              fontSize: "min(6vw, 36px)",
+              textShadow: "2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 4px 12px rgba(0,0,0,0.8)",
+              WebkitTextStroke: "1px black",
             }}
           >
-            <p className="text-white text-base font-semibold leading-snug drop-shadow-sm">
-              {generation.overlayText}
-            </p>
-          </div>
+            {generation.overlayText}
+          </span>
         </div>
       )}
 
