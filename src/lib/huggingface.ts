@@ -75,14 +75,9 @@ export async function generateImage(
       return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
     }
 
-    if (response.status === 429 || response.status === 402) {
-      console.warn("[HF] Quota or credits exceeded — returning mock");
-      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
-    }
-
     if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      throw new Error(`HF API error ${response.status}: ${body}`);
+      console.warn(`[HF] API failed with status ${response.status} — falling back to Pollinations.ai`);
+      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
     }
 
     const buffer = await response.arrayBuffer();
