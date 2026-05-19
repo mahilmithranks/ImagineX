@@ -29,6 +29,7 @@ export function HomeClient({}: Props) {
 
   const [initialPrompt, setInitialPrompt]     = useState("");
   const [initialSettings, setInitialSettings] = useState<Partial<GenerationSettings>>({});
+  const [initialOverlay, setInitialOverlay]   = useState("");
   const [tweakReady, setTweakReady]           = useState(false);
   const [lastPrompt, setLastPrompt]           = useState("");
 
@@ -48,6 +49,7 @@ export function HomeClient({}: Props) {
         const g: Generation = JSON.parse(raw);
         setInitialPrompt(g.prompt);
         setInitialSettings(g.settings);
+        if (g.overlayText) setInitialOverlay(g.overlayText);
       } catch {
         // malformed — ignore
       }
@@ -99,6 +101,7 @@ export function HomeClient({}: Props) {
             isLoading={state.status === "loading"}
             initialPrompt={initialPrompt}
             initialSettings={initialSettings}
+            initialOverlayText={initialOverlay}
             onSubmit={handleSubmit}
           />
         )}

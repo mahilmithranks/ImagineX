@@ -18,7 +18,7 @@ import clsx from "clsx";
 interface Props {
   isLoading: boolean;
   initialPrompt?: string;
-  initialSettings?: Partial<GenerationSettings>;
+  initialOverlayText?: string;
   onSubmit: (
     prompt: string,
     settings: Partial<GenerationSettings>,
@@ -30,14 +30,25 @@ export function PromptForm({
   isLoading,
   initialPrompt = "",
   initialSettings,
+  initialOverlayText = "",
   onSubmit,
 }: Props) {
   const [prompt, setPrompt]             = useState(initialPrompt);
-  const [overlayText, setOverlayText]   = useState("");
+  const [overlayText, setOverlayText]   = useState(initialOverlayText);
   const [showSettings, setShowSettings] = useState(false);
 
-  const [model, setModel]             = useState(initialSettings?.model ?? AVAILABLE_MODELS[0].id);
-  const [aspectRatio, setAspectRatio] = useState(0);
+  // Safely default the model in case the tweaked generation used a deprecated model
+  const validModel = AVAILABLE_MODELS.find(m => m.id === initialSettings?.model)
+    ? initialSettings!.model
+    : AVAILABLE_MODELS[0].id;
+  const [model, setModel] = useState(validModel);
+
+  // Safely find the aspect ratio index
+  const initialRatioIndex = ASPECT_RATIO_PRESETS.findIndex(
+    p => p.width === initialSettings?.width && p.height === initialSettings?.height
+  );
+  const [aspectRatio, setAspectRatio] = useState(initialRatioIndex >= 0 ? initialRatioIndex : 0);
+
   const [steps, setSteps]             = useState(initialSettings?.steps ?? 4);
   const [guidance, setGuidance]       = useState(initialSettings?.guidanceScale ?? 0);
   const [negPrompt, setNegPrompt]     = useState(initialSettings?.negativePrompt ?? "");
