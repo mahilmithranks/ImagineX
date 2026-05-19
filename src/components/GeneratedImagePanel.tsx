@@ -137,22 +137,7 @@ function SuccessState({ generation, isMocked }: SuccessProps) {
         priority
       />
 
-      {/* Cinematic subtitle overlay */}
-      {generation.overlayText && (
-        <div className="absolute bottom-0 inset-x-0 p-4 pb-[8%] flex justify-center pointer-events-none">
-          <span
-            className="text-white text-center font-bold uppercase w-full truncate px-4"
-            style={{
-              fontFamily: "Impact, sans-serif",
-              fontSize: "min(6vw, 36px)",
-              textShadow: "2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 4px 12px rgba(0,0,0,0.8)",
-              WebkitTextStroke: "1px black",
-            }}
-          >
-            {generation.overlayText}
-          </span>
-        </div>
-      )}
+
 
       {/* Model badge — bottom right, glass pill */}
       {!isMocked && modelLabel && (
