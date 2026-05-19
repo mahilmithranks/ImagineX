@@ -12,8 +12,6 @@ export const DEFAULT_SETTINGS: GenerationSettings = {
 
 export const AVAILABLE_MODELS = [
   { id: "black-forest-labs/FLUX.1-schnell", label: "FLUX Schnell", description: "Fast · free tier" },
-  { id: "stabilityai/stable-diffusion-2-1",  label: "SD 2.1",       description: "Balanced · free tier" },
-  { id: "runwayml/stable-diffusion-v1-5",    label: "SD 1.5",       description: "Classic · free tier" },
 ] as const;
 
 export const ASPECT_RATIO_PRESETS = [

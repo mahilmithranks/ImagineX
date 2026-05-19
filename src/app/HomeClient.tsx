@@ -116,7 +116,8 @@ export function HomeClient({}: Props) {
               onClick={() =>
                 downloadImage(
                   state.generation.imageUrl,
-                  `imaginex-${state.generation.id}`
+                  `imaginex-${state.generation.id}`,
+                  state.generation.overlayText
                 )
               }
               className="text-xs text-muted hover:text-white transition-colors duration-150
