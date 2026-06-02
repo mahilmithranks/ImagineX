@@ -223,32 +223,6 @@ function SuccessState({ generation, isMocked }: SuccessProps) {
         onError={() => setImgReady(true)}
       />
 
-      {/* ── Visual text overlay ── rendered on top of the image */}
-      {imgReady && generation.overlayText && (
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none animate-fade-in"
-          aria-label={`Text overlay: ${generation.overlayText}`}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              fontSize: "clamp(1.5rem, 8cqw, 5rem)",
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-              color: "rgba(255,255,255,0.92)",
-              textShadow:
-                "0 2px 12px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.9)",
-              textAlign: "center",
-              padding: "0 1rem",
-              lineHeight: 1.1,
-              userSelect: "none",
-            }}
-          >
-            {generation.overlayText}
-          </span>
-        </div>
-      )}
-
       {/* Model badge — bottom right, glass pill */}
       {!isMocked && modelLabel && imgReady && (
         <div className="absolute bottom-3 right-3 pointer-events-none animate-fade-in">

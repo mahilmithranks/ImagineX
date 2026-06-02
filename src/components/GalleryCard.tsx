@@ -83,32 +83,6 @@ export function GalleryCard({ generation, onDelete }: Props) {
           </span>
         </div>
 
-        {/* Text overlay — shown on the thumbnail */}
-        {generation.overlayText && (
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            aria-hidden="true"
-          >
-            <span
-              style={{
-                fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontSize: "clamp(0.75rem, 10cqw, 3rem)",
-                fontWeight: 800,
-                letterSpacing: "-0.02em",
-                color: "rgba(255,255,255,0.92)",
-                textShadow:
-                  "0 2px 8px rgba(0,0,0,0.8), 0 0 24px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.9)",
-                textAlign: "center",
-                padding: "0 0.5rem",
-                lineHeight: 1.1,
-                userSelect: "none",
-              }}
-            >
-              {generation.overlayText}
-            </span>
-          </div>
-        )}
-
         {/* Hover action overlay */}
         <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100
