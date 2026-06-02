@@ -5,6 +5,38 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [v1.4.0] — June 2, 2026
+
+### 🐛 Bug Fixes
+
+#### Aspect ratio hardcoded to square — `GeneratedImagePanel` & `GalleryCard`
+- **Problem:** `GeneratedImagePanel` always rendered with `aspect-square`, and `GalleryCard` thumbnails also used `aspect-square`, regardless of the chosen generation dimensions (Portrait 3:4, Landscape 4:3, Wide 16:9). Every output was cropped to a square.
+- **Fix:**
+  - `GeneratedImagePanel` now derives `aspectRatio` from `generation.settings.width / height` via a `toAspectRatio()` helper. Idle / loading / error states fall back to `1 / 1`. The class `aspect-square` was removed; the ratio is applied via inline `style.aspectRatio` so it updates smoothly.
+  - `GalleryCard` thumbnails now mirror the same ratio using `aspectRatio` inline style. `containerType: "inline-size"` was added so `cqw` font units for the overlay text scale correctly within each card.
+- **Files:** `src/components/GeneratedImagePanel.tsx`, `src/components/GalleryCard.tsx`
+
+---
+
+#### Text overlay not rendered visually on output image
+- **Problem:** The "Text overlay" input in `PromptForm` was appended to the AI prompt via `promptEnhancer.ts` (asking the model to render the text in the scene), but there was **no visual CSS overlay** composited on top of the generated image. The text was also invisible in Gallery card thumbnails and in the Tweak flow.
+- **Fix:** Added a full-bleed `position: absolute` overlay `<div>` in both `SuccessState` (in `GeneratedImagePanel`) and in `GalleryCard` thumbnail. The overlay renders `generation.overlayText` with:
+  - `font-weight: 800`, responsive `clamp()` font-size using `cqw` container units
+  - Layered `text-shadow` for legibility over any image
+  - `pointer-events: none` so it never blocks hover actions
+  - Fades in via `animate-fade-in` after the image has loaded
+  - Persists correctly through the Tweak flow (stored in `sessionStorage` with the full `Generation` object)
+- **Files:** `src/components/GeneratedImagePanel.tsx`, `src/components/GalleryCard.tsx`
+
+---
+
+#### Invalid Tailwind transition duration classes
+- **Problem:** `GalleryCard` used `duration-250` (hover lift) and `duration-400` (image scale), neither of which exist in Tailwind's default duration scale. Tailwind silently omits unknown classes, so both transitions were effectively **instant** — no smooth animation on hover.
+- **Fix:** Replaced with the nearest valid Tailwind values: `duration-250` → `duration-200`, `duration-400` → `duration-300`.
+- **Files:** `src/components/GalleryCard.tsx`
+
+---
+
 ## [v1.3.0] — June 2, 2026
 
 ### 🐛 Bug Fixes
@@ -96,4 +128,4 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-*Last updated: June 2, 2026*
+*Last updated: June 2, 2026 — v1.4.0*

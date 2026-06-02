@@ -34,7 +34,7 @@ export function GalleryCard({ generation, onDelete }: Props) {
   return (
     <article
       className="group relative rounded-2xl overflow-hidden flex flex-col
-                 transition-all duration-250 ease-out
+                 transition-all duration-200 ease-out
                  hover:-translate-y-1"
       style={{
         background: "rgba(15, 15, 30, 0.8)",
@@ -50,13 +50,19 @@ export function GalleryCard({ generation, onDelete }: Props) {
       }}
     >
       {/* ── Thumbnail ─────────────────────────────────────────────────── */}
-      <div className="relative aspect-square w-full overflow-hidden"
-           style={{ background: "rgba(11,11,22,0.8)" }}>
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          background: "rgba(11,11,22,0.8)",
+          aspectRatio: `${generation.settings.width ?? 1} / ${generation.settings.height ?? 1}`,
+          containerType: "inline-size",
+        }}
+      >
         <Image
           src={generation.imageUrl}
           alt={generation.prompt}
           fill
-          className="object-cover transition-transform duration-400 ease-out group-hover:scale-[1.04]"
+          className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
           unoptimized
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
@@ -76,6 +82,32 @@ export function GalleryCard({ generation, onDelete }: Props) {
             {modelLabel}
           </span>
         </div>
+
+        {/* Text overlay — shown on the thumbnail */}
+        {generation.overlayText && (
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            aria-hidden="true"
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-inter), Inter, sans-serif",
+                fontSize: "clamp(0.75rem, 10cqw, 3rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "rgba(255,255,255,0.92)",
+                textShadow:
+                  "0 2px 8px rgba(0,0,0,0.8), 0 0 24px rgba(0,0,0,0.6), 0 1px 2px rgba(0,0,0,0.9)",
+                textAlign: "center",
+                padding: "0 0.5rem",
+                lineHeight: 1.1,
+                userSelect: "none",
+              }}
+            >
+              {generation.overlayText}
+            </span>
+          </div>
+        )}
 
         {/* Hover action overlay */}
         <div

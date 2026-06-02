@@ -30,12 +30,22 @@ export function HomeClient({}: Props) {
   const [initialPrompt, setInitialPrompt]     = useState("");
   const [initialSettings, setInitialSettings] = useState<Partial<GenerationSettings>>({});
   const [initialOverlay, setInitialOverlay]   = useState("");
-  const [tweakReady, setTweakReady]           = useState(false);
+  const [tweakReady, setTweakReady]           = useState(!tweakId); // true immediately if no tweak
   const [lastPrompt, setLastPrompt]           = useState("");
   const [lastSettings, setLastSettings]       = useState<Partial<GenerationSettings>>({});
   const [lastOverlay, setLastOverlay]         = useState("");
 
   const gallery = useGallery();
+
+  // Stable callback — must not be recreated every render, otherwise
+  // `generate` (which depends on onSuccess) rebuilds every render and
+  // the second generation's setState runs in a stale closure.
+  const handleSuccess = useCallback(
+    (g: Generation) => { gallery.addGeneration(g); },
+    [gallery.addGeneration]
+  );
+
+  const { state, generate, reset } = useGenerate({ onSuccess: handleSuccess });
 
   // Load tweak data from sessionStorage when navigating from gallery.
   // We gate rendering PromptForm until data is loaded so its useState
@@ -58,12 +68,6 @@ export function HomeClient({}: Props) {
     }
     setTweakReady(true);
   }, [tweakId]);
-
-  const { state, generate, reset } = useGenerate({
-    onSuccess: (g) => {
-      gallery.addGeneration(g);
-    },
-  });
 
   const handleSubmit = useCallback(
     (prompt: string, settings: Partial<GenerationSettings>, overlayText: string) => {

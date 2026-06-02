@@ -1,6 +1,10 @@
 /**
  * GeneratedImagePanel.tsx — 4-state output panel.
  * idle / loading / success / error — each handled distinctly.
+ *
+ * Aspect ratio is derived from the generation's width/height so the panel
+ * correctly reflects square, portrait, landscape and wide outputs.
+ * Text overlay is rendered as a real visual layer over the image.
  */
 
 "use client";
@@ -17,16 +21,29 @@ interface ErrorProps   { status: "error"; error: ApiError; onRetry: () => void }
 
 type Props = IdleProps | LoadingProps | SuccessProps | ErrorProps;
 
+/** Convert width/height into a CSS aspect-ratio string, e.g. "4 / 3" */
+function toAspectRatio(width?: number, height?: number): string {
+  if (!width || !height) return "1 / 1";
+  return `${width} / ${height}`;
+}
+
 export function GeneratedImagePanel(props: Props) {
+  const aspectRatio =
+    props.status === "success"
+      ? toAspectRatio(props.generation.settings.width, props.generation.settings.height)
+      : "1 / 1"; // idle / loading / error always show square placeholder
+
   return (
     <div
       role="region"
       aria-label="Generated image output"
       aria-live="polite"
-      className="aspect-square w-full max-w-xl mx-auto rounded-3xl overflow-hidden"
+      className="w-full max-w-xl mx-auto rounded-3xl overflow-hidden"
       style={{
+        aspectRatio,
         boxShadow: "0 0 0 1px rgba(255,255,255,0.07), 0 24px 64px rgba(0,0,0,0.5)",
         background: "rgba(11, 11, 22, 0.8)",
+        transition: "aspect-ratio 0.3s ease",
       }}
     >
       {props.status === "idle"    && <IdleState />}
@@ -121,27 +138,120 @@ function LoadingState() {
 
 // ── Success ───────────────────────────────────────────────────────────────────
 
+const IMAGE_STATUS_MESSAGES = [
+  "Rendering image…",
+  "Fetching from AI…",
+  "Almost there…",
+  "Applying style…",
+  "Finalizing…",
+] as const;
+
 function SuccessState({ generation, isMocked }: SuccessProps) {
+  const [imgReady, setImgReady] = useState(false);
+  const [msgIndex, setMsgIndex] = useState(0);
+
   const modelLabel = generation.settings.model.split("/").pop()
     ?.replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase()) ?? "";
 
+  // Reset shimmer every time the image URL changes (new generation)
+  useEffect(() => {
+    setImgReady(false);
+    setMsgIndex(0);
+  }, [generation.imageUrl]);
+
+  // Cycle status messages while image is loading
+  useEffect(() => {
+    if (imgReady) return;
+    const t = setInterval(
+      () => setMsgIndex((i) => (i + 1) % IMAGE_STATUS_MESSAGES.length),
+      1800
+    );
+    return () => clearInterval(t);
+  }, [imgReady]);
+
   return (
-    <div className="relative w-full h-full animate-fade-in">
+    <div className="relative w-full h-full">
+
+      {/* ── Shimmer shown while the actual image is loading ── */}
+      {!imgReady && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 p-8 animate-fade-in">
+          {/* Shimmer block */}
+          <div
+            className="w-full flex-1 rounded-2xl"
+            aria-hidden="true"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, rgba(16,185,129,0.04) 0%, rgba(16,185,129,0.12) 50%, rgba(16,185,129,0.04) 100%)",
+              backgroundSize: "800px 100%",
+              animation: "shimmer 1.8s infinite linear",
+            }}
+          />
+          {/* Status dots + message */}
+          <div className="flex flex-col items-center gap-3" role="status" aria-live="polite">
+            <div className="flex gap-1.5" aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-brand-400"
+                  style={{ animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                />
+              ))}
+            </div>
+            <p key={msgIndex} className="text-[12px] font-medium text-white/80 animate-fade-in">
+              {IMAGE_STATUS_MESSAGES[msgIndex]}
+            </p>
+            <p className="text-[11px] text-surface-200">
+              {isMocked ? "Generating via Pollinations.ai…" : "May take up to 60 seconds"}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Actual image — hidden until loaded, then fades in ── */}
       <Image
         src={generation.imageUrl}
         alt={generation.prompt}
         fill
-        className="object-cover"
+        className={clsx(
+          "object-cover transition-opacity duration-500",
+          imgReady ? "opacity-100" : "opacity-0"
+        )}
         unoptimized
         priority
+        onLoad={() => setImgReady(true)}
+        onError={() => setImgReady(true)}
       />
 
-
+      {/* ── Visual text overlay ── rendered on top of the image */}
+      {imgReady && generation.overlayText && (
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none animate-fade-in"
+          aria-label={`Text overlay: ${generation.overlayText}`}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              fontSize: "clamp(1.5rem, 8cqw, 5rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "rgba(255,255,255,0.92)",
+              textShadow:
+                "0 2px 12px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.9)",
+              textAlign: "center",
+              padding: "0 1rem",
+              lineHeight: 1.1,
+              userSelect: "none",
+            }}
+          >
+            {generation.overlayText}
+          </span>
+        </div>
+      )}
 
       {/* Model badge — bottom right, glass pill */}
-      {!isMocked && modelLabel && (
-        <div className="absolute bottom-3 right-3 pointer-events-none">
+      {!isMocked && modelLabel && imgReady && (
+        <div className="absolute bottom-3 right-3 pointer-events-none animate-fade-in">
           <span
             className="rounded-full text-[10px] font-semibold tracking-wide px-2.5 py-1 text-white/60"
             style={{
@@ -151,22 +261,6 @@ function SuccessState({ generation, isMocked }: SuccessProps) {
             }}
           >
             {modelLabel}
-          </span>
-        </div>
-      )}
-
-      {/* Mock badge */}
-      {isMocked && (
-        <div className="absolute top-3 right-3">
-          <span
-            className="rounded-full text-[11px] font-medium px-3 py-1 text-amber-300"
-            style={{
-              background: "rgba(120,80,0,0.3)",
-              border: "1px solid rgba(245,158,11,0.25)",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            Mock Preview Mode
           </span>
         </div>
       )}
