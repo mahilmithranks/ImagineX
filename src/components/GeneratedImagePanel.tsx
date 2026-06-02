@@ -177,13 +177,18 @@ function SuccessState({ generation, isMocked }: SuccessProps) {
 // ── Error ─────────────────────────────────────────────────────────────────────
 
 const ERROR_HINTS: Record<string, string> = {
-  API_QUOTA:      "Your usage quota is exhausted. Try again later.",
+  API_QUOTA:      "Your HuggingFace free-tier credits are exhausted or the rate limit was hit.",
   API_TIMEOUT:    "Model was warming up. It should be ready now — try again.",
   INTERNAL_ERROR: "An unexpected server error occurred.",
   INVALID_PROMPT: "Revise your prompt and try again.",
 };
 
 function ErrorState({ error, onRetry }: ErrorProps) {
+  // Dedicated premium state for credits / quota errors
+  if (error.code === "API_QUOTA") {
+    return <QuotaErrorState error={error} />;
+  }
+
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-5 p-10" role="alert">
       <div
@@ -213,6 +218,112 @@ function ErrorState({ error, onRetry }: ErrorProps) {
           Try again
         </button>
       )}
+    </div>
+  );
+}
+
+// ── Quota / Credits Exhausted ─────────────────────────────────────────────────
+
+function QuotaErrorState({ error }: { error: ApiError }) {
+  // Detect whether it’s a hard credit limit (402) or a rate limit (429)
+  const isRateLimit = error.error.toLowerCase().includes("rate limit");
+
+  return (
+    <div
+      className="w-full h-full flex flex-col items-center justify-center gap-6 p-10 animate-fade-in"
+      role="alert"
+      aria-label="Credits exhausted"
+    >
+      {/* Icon */}
+      <div
+        className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
+        style={{
+          background: "rgba(245,158,11,0.08)",
+          border: "1px solid rgba(245,158,11,0.25)",
+          boxShadow: "0 0 24px rgba(245,158,11,0.08)",
+        }}
+      >
+        {/* Coin / currency icon */}
+        <svg
+          className="w-8 h-8"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          style={{ color: "#f59e0b" }}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 11.219 12.768 11 12 11c-.768 0-1.536-.219-2.121-.659-.586-.439-.879-1.012-.879-1.591s.293-1.152.879-1.591A3.75 3.75 0 0112 6.75" />
+          <circle cx="12" cy="12" r="9.75" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {/* Pulse ring */}
+        <span
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            boxShadow: "0 0 0 0 rgba(245,158,11,0.4)",
+            animation: "quota-pulse 2s ease-out infinite",
+          }}
+        />
+      </div>
+
+      {/* Text */}
+      <div className="text-center space-y-2">
+        <p
+          className="text-[15px] font-bold"
+          style={{
+            background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
+          {isRateLimit ? "Rate Limit Reached" : "Credits Exhausted"}
+        </p>
+        <p className="text-[12px] text-white/70 leading-relaxed max-w-[260px]">
+          {isRateLimit
+            ? "You’ve hit the HuggingFace API rate limit. Wait a few minutes and try generating again."
+            : "Your HuggingFace free-tier inference credits are used up for this billing period."}
+        </p>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col items-center gap-3">
+        {isRateLimit ? (
+          <p className="text-[11px] text-surface-200">Usually resets within a few minutes.</p>
+        ) : (
+          <a
+            href="https://huggingface.co/settings/billing"
+            target="_blank"
+            rel="noopener noreferrer"
+            id="hf-billing-link"
+            className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-semibold
+                       text-white transition-all duration-150
+                       focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+            style={{
+              background: "linear-gradient(135deg, #f59e0b, #d97706)",
+              boxShadow: "0 0 0 1px rgba(245,158,11,0.4), 0 4px 16px rgba(245,158,11,0.2)",
+            }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+            Upgrade on HuggingFace
+          </a>
+        )}
+
+        <p
+          className="text-[11px] px-3 py-1.5 rounded-full"
+          style={{
+            background: "rgba(245,158,11,0.06)",
+            border: "1px solid rgba(245,158,11,0.12)",
+            color: "rgba(245,158,11,0.7)",
+          }}
+        >
+          ⚡ Images are still served via Pollinations.ai in fallback mode
+        </p>
+      </div>
     </div>
   );
 }

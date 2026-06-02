@@ -36,7 +36,15 @@ export function PromptForm({
 }: Props) {
   const [prompt, setPrompt]             = useState(initialPrompt);
   const [overlayText, setOverlayText]   = useState(initialOverlayText);
-  const [showSettings, setShowSettings] = useState(false);
+  // Auto-open Advanced Settings when tweaking so users can see/confirm
+  // pre-filled style, steps, guidance, and negative prompt.
+  const hasMeaningfulSettings = !!(
+    initialSettings?.stylePreset && initialSettings.stylePreset !== "none"
+    || initialSettings?.steps && initialSettings.steps !== 4
+    || initialSettings?.guidanceScale && initialSettings.guidanceScale !== 0
+    || initialSettings?.negativePrompt
+  );
+  const [showSettings, setShowSettings] = useState(hasMeaningfulSettings);
 
   // Safely default the model in case the tweaked generation used a deprecated model
   const validModel = AVAILABLE_MODELS.find(m => m.id === initialSettings?.model)

@@ -1,13 +1,11 @@
 'use client';
 import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes';
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 type DottedSurfaceProps = Omit<React.ComponentProps<'div'>, 'ref'>;
 
 export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
-  const { resolvedTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -124,7 +122,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         containerRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [resolvedTheme]); // resolvedTheme is stable once theme settles (avoids undefined→dark re-trigger)
+  }, []); // empty deps — run once on mount, clean up on unmount; never restart
 
   return (
     <div

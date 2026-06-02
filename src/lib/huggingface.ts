@@ -72,12 +72,24 @@ export async function generateImage(
     // HF returns 503 when the model is loading (usually transient)
     if (response.status === 503) {
       console.warn("[HF] Model loading (503) — returning mock");
-      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
+      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height, settings.negativePrompt), isMocked: true };
+    }
+
+    // 402 = Payment Required (free-tier credits exhausted)
+    // 429 = Too Many Requests (rate limit / monthly quota hit)
+    if (response.status === 402 || response.status === 429) {
+      const body = await response.text().catch(() => "");
+      console.warn(`[HF] Quota/credits exhausted (${response.status}): ${body}`);
+      throw new QuotaError(
+        response.status === 402
+          ? "HuggingFace free-tier credits exhausted. Add billing at huggingface.co/settings/billing."
+          : "HuggingFace API rate limit reached. Please wait a few minutes and try again."
+      );
     }
 
     if (!response.ok) {
       console.warn(`[HF] API failed with status ${response.status} — falling back to Pollinations.ai`);
-      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height), isMocked: true };
+      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height, settings.negativePrompt), isMocked: true };
     }
 
     const buffer = await response.arrayBuffer();
@@ -91,9 +103,29 @@ export async function generateImage(
     if (err instanceof QuotaError) throw err;
 
     if ((err as Error).name === "AbortError") {
-      throw new TimeoutError("HuggingFace API timed out after 60s");
+      // Our own AbortController fired (60s timeout) — use fallback
+      console.warn("[HF] Request aborted (60s timeout) — falling back to Pollinations.ai");
+      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height, settings.negativePrompt), isMocked: true };
     }
 
+    // Catch undici ConnectTimeoutError, network errors, DNS failures, etc.
+    // These all have codes like UND_ERR_CONNECT_TIMEOUT or simply fail to connect.
+    // Fall back gracefully instead of surfacing a 500 to the client.
+    const code = (err as NodeJS.ErrnoException).code ?? "";
+    const name = (err as Error).name ?? "";
+    if (
+      code.startsWith("UND_ERR") ||
+      code === "ECONNREFUSED" ||
+      code === "ENOTFOUND" ||
+      code === "ETIMEDOUT" ||
+      name === "ConnectTimeoutError" ||
+      name === "FetchError"
+    ) {
+      console.warn(`[HF] Network error (${code || name}) — falling back to Pollinations.ai`);
+      return { imageUrl: buildMockDataUri(prompt, settings.width, settings.height, settings.negativePrompt), isMocked: true };
+    }
+
+    // Unknown error — re-throw so the route handler can log it
     throw err;
   }
 }
@@ -120,9 +152,18 @@ export class TimeoutError extends Error {
 // Fallback generator — returns a real AI image from Pollinations.ai (Free/No-Auth)
 // ────────────────────────────────────────────────────────────────────────────
 
-function buildMockDataUri(prompt: string, width: number = 1024, height: number = 1024): string {
+function buildMockDataUri(
+  prompt: string,
+  width: number = 1024,
+  height: number = 1024,
+  negativePrompt?: string
+): string {
   // Add a random seed so identical prompts give different results
   const seed = Math.floor(Math.random() * 1000000);
   const safePrompt = encodeURIComponent(prompt);
-  return `https://image.pollinations.ai/prompt/${safePrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
+  let url = `https://image.pollinations.ai/prompt/${safePrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
+  if (negativePrompt?.trim()) {
+    url += `&negative=${encodeURIComponent(negativePrompt.trim())}`;
+  }
+  return url;
 }

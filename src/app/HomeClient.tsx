@@ -32,6 +32,8 @@ export function HomeClient({}: Props) {
   const [initialOverlay, setInitialOverlay]   = useState("");
   const [tweakReady, setTweakReady]           = useState(false);
   const [lastPrompt, setLastPrompt]           = useState("");
+  const [lastSettings, setLastSettings]       = useState<Partial<GenerationSettings>>({});
+  const [lastOverlay, setLastOverlay]         = useState("");
 
   const gallery = useGallery();
 
@@ -66,6 +68,8 @@ export function HomeClient({}: Props) {
   const handleSubmit = useCallback(
     (prompt: string, settings: Partial<GenerationSettings>, overlayText: string) => {
       setLastPrompt(prompt);
+      setLastSettings(settings);
+      setLastOverlay(overlayText);
       generate(prompt, settings, overlayText);
     },
     [generate]
@@ -82,7 +86,7 @@ export function HomeClient({}: Props) {
         status: "error" as const,
         error: state.error,
         onRetry: () => {
-          if (lastPrompt) generate(lastPrompt);
+          if (lastPrompt) generate(lastPrompt, lastSettings, lastOverlay);
           else reset();
         },
       };

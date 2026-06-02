@@ -13,7 +13,7 @@ At the heart of ImagineX is a seamless integration with the **Hugging Face Infer
 To guarantee output diversity without forcing users to become "prompt engineers", ImagineX utilizes a server-side **Prompt Enhancer**. Users can select from curated Style Presets (e.g., *Realistic, Cinematic, Anime, 3D Render, Pixel Art*). The system intercepts the base prompt and dynamically injects advanced styling modifiers before sending the request to the model, ensuring highly stylized and accurate results.
 
 ### 3. "Tweak & Iterate" Workflow
-Creativity is iterative. ImagineX introduces a seamless "Tweak" functionality. When viewing a generated image, users can click "Tweak" to instantly map the image's original prompt and settings back into the active generation form, allowing for rapid iteration and refinement of ideas.
+Creativity is iterative. ImagineX introduces a seamless "Tweak" functionality. When viewing a generated image, users can click "Tweak" to instantly map the image's original prompt and all advanced settings (style preset, aspect ratio, steps, guidance, negative prompt) back into the active generation form. The Advanced Settings panel auto-opens when pre-filled, giving the user full visibility into what is loaded and ready to change.
 
 ### 4. Local SQLite Gallery Persistence
 No images are lost. Using a robust **Repository Pattern** over `better-sqlite3`, all generations are automatically persisted locally. The gallery serves as a persistent visual history of the user's workspace, complete with immediate download capabilities directly to the user's device.
@@ -22,8 +22,13 @@ No images are lost. Using a robust **Repository Pattern** over `better-sqlite3`,
 The user interface has been meticulously crafted to feel like a high-end subscription product:
 - **Atmospheric Aesthetic**: A deep midnight/charcoal baseline paired with vivid Emerald (`#10b981`) accents.
 - **Glassmorphism**: A macOS-inspired floating frosted glass navbar and translucent panels.
-- **Dynamic Backgrounds**: An interactive `three.js` particle background (`DottedSurface`) anchors the hero section.
+- **Dynamic Backgrounds**: An interactive `three.js` particle background (`DottedSurface`) anchors the hero section with a continuous, never-stopping wave animation.
 - **Fluid CSS Animations**: Custom staggered shimmers for loading states, smooth slide-up text transitions, and continuous sweeping gradient shines on focal points.
+
+### 6. Intelligent Error Handling & Fallback
+- **Network resilience**: When HuggingFace is unreachable (timeout, DNS failure), requests automatically fall back to [Pollinations.ai](https://pollinations.ai) — a free image API — so users always get a result.
+- **Credits Exhausted UI**: HTTP 402/429 from HuggingFace shows a dedicated amber "Credits Exhausted" panel with a billing link, clearly distinguishing a credit issue from a system error.
+- **Style & settings preserved**: All advanced settings (style preset, negative prompt, aspect ratio) are forwarded to the fallback API where supported.
 
 ---
 
@@ -117,3 +122,16 @@ While ImagineX is structurally complete as a generative workspace MVP, future it
 - **Image-to-Image Generation**: Expanding the Hugging Face router to support ControlNet or Img2Img models.
 - **Authentication**: Implementing NextAuth/Clerk for user-specific galleries and workspaces.
 - **Asset Storage**: Migrating Base64 stored data-URIs to a dedicated object store (AWS S3 / Cloudflare R2).
+
+---
+
+## 📋 Recent Updates (June 2026)
+
+| # | Change | Files |
+|---|--------|-------|
+| 1 | Fixed `ConnectTimeoutError` (undici `UND_ERR_*`) causing unhandled 500 — now falls back to Pollinations.ai | `huggingface.ts` |
+| 2 | Fixed Tweak → Retry silently dropping advanced settings (style, ratio, model, overlay) | `HomeClient.tsx` |
+| 3 | Added dedicated **Credits Exhausted** amber UI panel (HTTP 402/429) with HuggingFace billing link | `GeneratedImagePanel.tsx`, `huggingface.ts`, `globals.css` |
+| 4 | Advanced Settings auto-opens in Tweak mode so pre-filled style/steps/guidance/negative are visible | `PromptForm.tsx` |
+| 5 | Negative prompt now forwarded to Pollinations.ai fallback via `?negative=` URL param | `huggingface.ts` |
+| 6 | Fixed background dots stopping — removed `resolvedTheme` dependency that was restarting the Three.js scene on mount | `dotted-surface.tsx` |

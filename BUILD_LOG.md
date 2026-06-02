@@ -57,3 +57,69 @@ To give the landing page a dynamic "creative laboratory" feel, we implemented a 
 5. [x] Resolve `overflow: hidden` gradient clipping bug on hero text.
 6. [x] Remove default focus rings in favor of branded UI transitions.
 7. [x] Apply a universal, multi-layer CSS gradient to the `body` background.
+
+---
+
+## 🐛 5. Bug Fixes — June 2026
+
+### Fix 1: `ConnectTimeoutError` Causing 500 on `/api/generate`
+
+**Problem**: When the HuggingFace API endpoint was unreachable (e.g., network timeout, DNS failure), Node's `undici` HTTP client threw a `ConnectTimeoutError` with error code `UND_ERR_CONNECT_TIMEOUT`. This error was **not** an `AbortError`, so the catch block in `huggingface.ts` bypassed all handling and re-threw it unchecked. The route handler had no specific handler for this, resulting in a generic `500 Internal Server Error` sent to the client — and a failed generation with no image.
+
+**Fix** (`src/lib/huggingface.ts`):
+- Added an explicit network error guard in the `catch` block that checks `error.code` for `UND_ERR_*`, `ECONNREFUSED`, `ENOTFOUND`, `ETIMEDOUT` and `error.name` for `ConnectTimeoutError` / `FetchError`.
+- Instead of re-throwing, these cases now gracefully **fall back to Pollinations.ai** (the free image API), ensuring the user always receives a valid image even when HuggingFace is unreachable.
+- The `AbortError` path (our own 60-second timeout guard) was similarly updated to fall back to Pollinations.ai instead of throwing a `TimeoutError`, providing a consistent failure-recovery strategy.
+
+---
+
+### Fix 2: Tweak → Advanced Settings → Generate Ignored Settings on Retry
+
+**Problem**: In `HomeClient.tsx`, the error-state retry handler only stored and replayed `lastPrompt`. When a user clicked **Tweak** from the Gallery, made changes in the **Advanced Settings** panel (style, aspect ratio, model), and then hit Generate — if the request failed, the **Retry** button called `generate(lastPrompt)` with no settings, silently discarding all advanced setting changes.
+
+**Fix** (`src/app/HomeClient.tsx`):
+- Added two new state variables: `lastSettings` (stores the last-submitted `Partial<GenerationSettings>`) and `lastOverlay` (stores the last overlay text).
+- `handleSubmit` now sets all three before calling `generate()`.
+- The `onRetry` callback now calls `generate(lastPrompt, lastSettings, lastOverlay)`, fully replaying the original request.
+
+---
+
+## 💳 6. Credits Exhausted UI — June 2026
+
+### Feature: Dedicated Quota / Credits Exhausted Panel
+
+**Background**: HuggingFace's Inference API returns HTTP `402 Payment Required` when the free-tier credit balance is zero, and `429 Too Many Requests` on rate limit. Previously both codes fell through to a generic mock fallback or a non-descript red error panel, giving users no actionable information.
+
+**Changes**:
+
+#### `src/lib/huggingface.ts` — HTTP Quota Detection
+- Added explicit checks for `response.status === 402` and `response.status === 429` **before** the generic `!response.ok` fallback.
+- Both statuses now `throw new QuotaError(...)` with a human-readable message distinguishing credit exhaustion (402) from rate-limiting (429).
+- The route handler already caught `QuotaError` and returned a `429` response with `code: "API_QUOTA"` — this is now correctly triggered.
+
+#### `src/components/GeneratedImagePanel.tsx` — `QuotaErrorState` Component
+- Introduced a new dedicated `QuotaErrorState` sub-component rendered when `error.code === "API_QUOTA"`.
+- **Visual language**: Amber/gold color palette (`#f59e0b`) to distinguish from the red generic error state — immediately communicating a "resource/billing" issue rather than a system failure.
+- **Amber pulsing ring** (`@keyframes quota-pulse`) around the coin icon creates a live, attention-drawing effect.
+- **Gradient coin icon** as the primary visual anchor.
+- **Contextual copy**: Distinguishes between hard credit exhaustion (402) and temporary rate limiting (429), with appropriate guidance for each.
+- **CTA button**: For credit exhaustion, renders an amber "Upgrade on HuggingFace" button linking directly to `huggingface.co/settings/billing`.
+- **Fallback notice**: An amber pill informs users that Pollinations.ai is available as a free fallback.
+
+#### `src/app/globals.css` — `@keyframes quota-pulse`
+- Added a new `quota-pulse` keyframe that animates a radial box-shadow from amber at 0% to transparent at 70–100%, creating a smooth breathing ring effect on the credits-exhausted icon.
+
+---
+
+## ✅ Updated Summary of Action Items Completed
+
+1. [x] Completely migrate codebase to Emerald/Teal brand design.
+2. [x] Rebuild Navbar into macOS frosted glass pill.
+3. [x] Integrate `Three.js` DottedSurface and resolve dispose memory leaks.
+4. [x] Fix Server-to-Client prop drilling hydration errors (`HomeClient` refactor).
+5. [x] Resolve `overflow: hidden` gradient clipping bug on hero text.
+6. [x] Remove default focus rings in favor of branded UI transitions.
+7. [x] Apply a universal, multi-layer CSS gradient to the `body` background.
+8. [x] Fix `ConnectTimeoutError` (undici) causing unhandled 500 on `/api/generate` — now falls back to Pollinations.ai.
+9. [x] Fix Tweak → Retry losing advanced settings (style, ratio, model, overlay).
+10. [x] Add dedicated "Credits Exhausted" / "Rate Limit Reached" amber UI panel with HuggingFace billing CTA.
