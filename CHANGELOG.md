@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [v1.5.0] — June 2, 2026
+
+### 🐛 Bug Fixes
+
+#### Gallery page layout broken with mixed aspect ratios
+- **Problem:** `GalleryGrid` used `grid grid-cols-3` which requires all cards in a row to share the same height. After fixing aspect ratios to be dynamic (v1.4.0), cards of different shapes (portrait, landscape, wide) left large empty gaps below shorter cards, breaking the visual layout.
+- **Fix:**
+  - `GalleryGrid` now uses a **CSS columns (masonry)** layout — `columns-1 sm:columns-2 lg:columns-3` with `break-inside-avoid` on each card wrapper — so cards of any ratio pack naturally without row-height gaps.
+  - The skeleton loader was updated to use the same columns layout with alternating aspect ratios (`1/1`, `3/4`, `4/3`, `16/9`) to realistically preview a mixed gallery.
+  - `gallery/page.tsx` header was polished: `text-muted` → `text-surface-100` (a defined Tailwind token), and the "New image" button now uses the brand gradient style consistent with the rest of the app.
+  - Removed redundant `py-10` in favour of `pt-6 pb-16` so the content clears the sticky navbar correctly.
+- **Files:** `src/components/GalleryGrid.tsx`, `src/app/gallery/page.tsx`
+
+---
+
 ## [v1.4.0] — June 2, 2026
 
 ### 🐛 Bug Fixes
@@ -128,4 +143,4 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-*Last updated: June 2, 2026 — v1.4.0*
+*Last updated: June 2, 2026 — v1.5.0*

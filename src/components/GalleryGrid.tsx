@@ -1,6 +1,9 @@
 /**
- * GalleryGrid.tsx — Grid container for GalleryCards.
- * Handles: skeleton, empty state, populated grid.
+ * GalleryGrid.tsx — Masonry container for GalleryCards.
+ * Handles: skeleton, empty state, populated masonry grid.
+ *
+ * Uses CSS columns (masonry) so cards with varied aspect ratios
+ * (square, portrait, landscape, wide) stack without row-height gaps.
  */
 
 "use client";
@@ -29,36 +32,45 @@ export function GalleryGrid({ generations, isLoading, error, onDelete }: Props) 
   if (generations.length === 0) return <EmptyState />;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div
+      className="columns-1 sm:columns-2 lg:columns-3"
+      style={{ columnGap: "1.25rem" }}
+    >
       {generations.map((g) => (
-        <GalleryCard key={g.id} generation={g} onDelete={onDelete} />
+        <div key={g.id} className="mb-5 break-inside-avoid">
+          <GalleryCard generation={g} onDelete={onDelete} />
+        </div>
       ))}
     </div>
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ───────────────────────────────────────────────────────────────────────
 
 function SkeletonGrid() {
+  // Alternate aspect ratios to visually simulate a mixed-ratio masonry layout
+  const skeletonRatios = ["1/1", "3/4", "4/3", "1/1", "16/9", "3/4"];
+
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+      className="columns-1 sm:columns-2 lg:columns-3"
+      style={{ columnGap: "1.25rem" }}
       aria-label="Loading gallery…"
       aria-busy="true"
     >
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl overflow-hidden"
+          className="mb-5 break-inside-avoid rounded-2xl overflow-hidden"
           style={{
             background: "rgba(15,15,30,0.8)",
             boxShadow: "0 0 0 1px rgba(255,255,255,0.05)",
           }}
         >
           <div
-            className="aspect-square w-full"
             aria-hidden="true"
             style={{
+              aspectRatio: skeletonRatios[i],
               backgroundImage: "linear-gradient(90deg, rgba(16,185,129,0.04) 0%, rgba(16,185,129,0.09) 50%, rgba(16,185,129,0.04) 100%)",
               backgroundSize: "800px 100%",
               animation: `shimmer 1.8s ${i * 0.12}s infinite linear`,
